@@ -1,0 +1,65 @@
+name: DevSecOps CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+          pytest
+
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          pip install bandit
+          bandit -r .
+
+  sca:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          pip install pip-audit
+          pip-audit
+
+  secret_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gitleaks/gitleaks-action@v2
+
+  build_and_push:
+    runs-on: ubuntu-latest
+    needs: [test, sast, sca, secret_scan]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: |
+            dockerhubuser/notes-app:latest
+            dockerhubuser/notes-app:${{ github.sha }}
+
+  image_scan:
+    runs-on: ubuntu-latest
+    needs: build_and_push
+    steps:
+      - uses: aquasecurity/trivy-action@v0.20.0
+        with:
+          image-ref: dockerhubuser/notes-app:latest
