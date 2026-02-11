@@ -1,4 +1,4 @@
-FROM python:3.13-slim-bullseye
+FROM python:3.12-alpine
 
 RUN addgroup --system app && adduser --system --ingroup app app \
     && apt-get update && apt-get install -y --no-install-recommends ca-certificates \
