@@ -91,11 +91,11 @@ jobs:
 
       - name: Build Image
         run: |
-          docker build -t hildan001/devsecops-app:latest .
+          docker build -t hidan001/devsecops-app:latest .
 
       - name: Push Image
         run: |
-          docker push hildan001/devsecops-app:latest
+          docker push hidan001/devsecops-app:latest
 
 
   image-scan:
@@ -107,7 +107,7 @@ jobs:
       - name: Scan Docker Image from Docker Hub
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: hildan001/devsecops-app:latest
+          image-ref: hidan001/devsecops-app:latest
           format: table
           exit-code: 1
           vuln-type: 'os,library'
